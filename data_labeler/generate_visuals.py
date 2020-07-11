@@ -1,6 +1,5 @@
 import cv2
 import os
-import ntpath as path
 import pickle
 import numpy as np
 from natsort import natsorted
@@ -18,9 +17,9 @@ def __read_pickle_files__(source_folder_path):
 
     for i, file in enumerate(filelist):
         progress_bar(i, num_files)
-        filepath = path.join(source_folder_path, file)
+        filepath = os.path.join(source_folder_path, file)
 
-        if path.isfile(filepath):
+        if os.path.isfile(filepath):
             with open(filepath, 'rb') as f:
                 data = pickle.load(f)
                 imgs.append(data)
@@ -30,18 +29,18 @@ def __read_pickle_files__(source_folder_path):
     return imgs
 
 
-def generate_images(dst_folder, imgs):
+def __generate_images__(dst_folder, imgs):
     print('generating images')
     num_imgs = len(imgs)
 
     for i, img in enumerate(imgs):
         progress_bar(i, num_imgs)
-        cv2.imwrite(path.join(
+        cv2.imwrite(os.path.join(
             dst_folder, f'{str(i).zfill(9)}_img.jpg'), img)
     print(f'successfully converted to images, stored in {dst_folder}')
 
 
-def generate_video(dst_folder, imgs):
+def __generate_video__(dst_folder, imgs):
     print('generating video')
     num_imgs = len(imgs)
 
@@ -49,7 +48,7 @@ def generate_video(dst_folder, imgs):
     fps = 10
 
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
-    vidpath = path.join(dst_folder, 'video.avi')
+    vidpath = os.path.join(dst_folder, 'video.avi')
     video = cv2.VideoWriter(vidpath, fourcc, fps, (width, height))
 
     for i in range(len(imgs)):
@@ -59,6 +58,31 @@ def generate_video(dst_folder, imgs):
     cv2.destroyAllWindows()
     video.release()
     print(f'successfully created video, stored in {vidpath}')
+
+
+def generate_images(src_folder):
+    imgs = __read_pickle_files__(src_folder)
+
+    dst_folder = os.path.join(src_folder, '..', 'imvid')
+    dst_folder = os.path.abspath(dst_folder)
+
+    # clear out dst_folder if already exists
+    if not os.path.exists(dst_folder):
+        os.mkdir(dst_folder)
+    else:
+        filelist = os.listdir(dst_folder)
+        for file in filelist:
+            filepath = os.path.join(dst_folder, file)
+            name, ext = os.path.splitext(filepath)
+            os.remove(filepath)
+
+    __generate_images__(dst_folder, imgs)
+
+def generate_video(src_folder):
+    dst_folder = os.path.join(src_folder, '..', 'imvid')
+    dst_folder = os.path.abspath(dst_folder)
+    imgs = __read_pickle_files__(src_folder)
+    __generate_video__(dst_folder, imgs)
 
 
 if __name__ == '__main__':
@@ -73,7 +97,7 @@ if __name__ == '__main__':
                         help='whether to create video')
     args = parser.parse_args()
 
-    if not path.isdir(args.source_folder):
+    if not os.path.isdir(args.source_folder):
         print('the specified source folder does not exist')
         print('please run `generate_pickle.py` first')
         exit(1)
@@ -82,16 +106,17 @@ if __name__ == '__main__':
         print('please specify either -i, -v, or both')
         exit(1)
 
-    dst_folder = path.join(args.source_folder, '..', 'imvid')
+    dst_folder = os.path.join(args.source_folder, '..', 'imvid')
+    dst_folder = os.path.abspath(dst_folder)
 
     # clear out dst_folder if already exists
-    if not path.exists(dst_folder):
+    if not os.path.exists(dst_folder):
         os.mkdir(dst_folder)
     else:
         filelist = os.listdir(dst_folder)
         for file in filelist:
-            filepath = path.join(dst_folder, file)
-            name, ext = path.splitext(filepath)
+            filepath = os.path.join(dst_folder, file)
+            name, ext = os.path.splitext(filepath)
             if args.images and ext == '.jpg':
                 os.remove(filepath)
             if args.video and ext == '.avi':
@@ -100,7 +125,7 @@ if __name__ == '__main__':
     imgs = __read_pickle_files__(args.source_folder)
 
     if args.images:
-        generate_images(dst_folder, imgs)
+        __generate_images__(dst_folder, imgs)
 
     if args.video:
-        generate_video(dst_folder, imgs)
+        __generate_video__(dst_folder, imgs)

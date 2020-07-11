@@ -1,5 +1,4 @@
 import os
-import ntpath as path
 import numpy as np
 import cv2
 import pickle
@@ -12,8 +11,19 @@ from utils import progress_bar
 # when recording data
 
 
-def generate_pickles(root_folder_path, dst_folder):
-    first_file_path = path.join(root_folder_path, 'RGB_whole.raw')
+def generate_pickles(root_folder_path):
+    print('generating pickles')
+    dst_folder = os.path.join(root_folder_path, 'pickles')
+
+    if not os.path.isdir(dst_folder):
+        os.mkdir(dst_folder)
+    else:
+        filelist = os.listdir(dst_folder)
+        for file in filelist:
+            filepath = os.path.join(dst_folder, file)
+            os.remove(filepath)
+
+    first_file_path = os.path.join(root_folder_path, 'RGB_whole.raw')
 
     rgbData = np.fromfile(first_file_path, dtype=np.uint8)
     rgbData = np.reshape(
@@ -24,8 +34,10 @@ def generate_pickles(root_folder_path, dst_folder):
         rgb_img = rgbData[i]
         rgb_img = rgb_img[:, :, :3]
         rgb_img = cv2.cvtColor(rgb_img, cv2.COLOR_BGR2RGB)
-        with open(path.join(dst_folder, f'{str(i).zfill(9)}_rgb.pkl'), 'wb') as fid:
+        with open(os.path.join(dst_folder, f'{str(i).zfill(9)}_rgb.pkl'), 'wb') as fid:
             pickle.dump(rgb_img, fid, pickle.HIGHEST_PROTOCOL)
+    
+    print(f'successfully wrote pkl files to {dst_folder}')
 
 
 if __name__ == '__main__':
@@ -36,19 +48,8 @@ if __name__ == '__main__':
                         help='should be GTAV_program\\drivedata')
     args = parser.parse_args()
 
-    if not path.isdir(args.root_folder):
+    if not os.path.isdir(args.root_folder):
         print('the specified root folder does not exist')
         exit(1)
 
-    dst_folder = path.join(args.root_folder, 'pickles')
-
-    if not path.isdir(dst_folder):
-        os.mkdir(dst_folder)
-    else:
-        filelist = os.listdir(dst_folder)
-        for file in filelist:
-            filepath = path.join(dst_folder, file)
-            os.remove(filepath)
-
-    generate_pickles(args.root_folder, dst_folder)
-    print(f'successfully wrote pkl files to {dst_folder}')
+    generate_pickles(args.root_folder)

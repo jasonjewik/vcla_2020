@@ -21,7 +21,7 @@ parser = argparse.ArgumentParser(
     description='Label training data'
 )
 parser.add_argument('root_folder', action='store',
-                    help='should be GTAV_program\\drivedata')
+                    help='should be GTAV_program/drivedata')
 parser.add_argument('-v', '--video', action='store_true',
                     help='whether to create video')
 parser.add_argument('-p', '--parent', action='store_true',

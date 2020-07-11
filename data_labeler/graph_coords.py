@@ -10,7 +10,7 @@ parser = argparse.ArgumentParser(
     description='Generates a 3D graph of the given drivedata'
 )
 parser.add_argument('data_path', action='store',
-                    help='should be GTAV_program\\drivedata')
+                    help='should be GTAV_program/drivedata')
 args = parser.parse_args()
 
 if not os.path.isdir(args.data_path):

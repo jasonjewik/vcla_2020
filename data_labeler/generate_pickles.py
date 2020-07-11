@@ -45,7 +45,7 @@ if __name__ == '__main__':
         description='Extact pickle files from drivedata'
     )
     parser.add_argument('root_folder', action='store',
-                        help='should be GTAV_program\\drivedata')
+                        help='should be GTAV_program/drivedata')
     args = parser.parse_args()
 
     if not os.path.isdir(args.root_folder):

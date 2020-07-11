@@ -90,7 +90,7 @@ if __name__ == '__main__':
         description='Generate visuals (images or videos) from pickle files.'
     )
     parser.add_argument('source_folder', action='store',
-                        help='should be GTAV_program\\drivedata\\pickles')
+                        help='should be GTAV_program/drivedata/pickles')
     parser.add_argument('-i', '--images', action='store_true',
                         help='whether to create images')
     parser.add_argument('-v', '--video', action='store_true',

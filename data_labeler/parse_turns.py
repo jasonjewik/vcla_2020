@@ -137,7 +137,7 @@ if __name__ == '__main__':
         description='Parses turns of the given data'
     )
     parser.add_argument('workspace_path', action='store',
-                        help='should be GTAV_program\\drivedata')
+                        help='should be GTAV_program/drivedata')
     args = parser.parse_args()
 
     if not os.path.isdir(args.workspace_path):

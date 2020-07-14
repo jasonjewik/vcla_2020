@@ -188,4 +188,5 @@ Please see the **Contents** section for advanced usage.
 ## Further Notes
 
 - YOLOv3 model trained with [Darknet](https://github.com/pjreddie/darknet)
+- My forked version with changes to auto-label data is [here](https://github.com/jasonjewik/darknet)
 - Image annotations done with [LabelImg](https://github.com/tzutalin/labelImg)

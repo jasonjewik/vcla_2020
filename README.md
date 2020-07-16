@@ -182,7 +182,7 @@ Please see the **Contents** section for advanced usage.
 ## To Do
 
 - [x] Parse drivedata CSV files
-- [ ] Test on Windows
+- [x] Test on Windows
 - [ ] Train YOLOv3 model to determine braking/not-braking
 
 ## Further Notes

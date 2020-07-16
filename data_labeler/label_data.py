@@ -8,11 +8,12 @@ from parse_turns import parse_turns
 from subprocess import call
 
 # Determine operating system
-OS = "windows"
-try:
-    from ntpath import path
-except:
-    OS = "linux"
+if os.name == "nt":
+    OS = "windows"
+elif os.name == "posix":
+    OS = "posix"
+else:
+    OS = "unknown"
 
 print(f'Detected OS: {OS}')
 
@@ -54,7 +55,8 @@ if args.parent:
     # ask user for confirmation
     confirm = True
     while True:
-        user_input = input('Are these the folders you want to use? ([Y]/n) ') or confirm
+        user_input = input(
+            'Are these the folders you want to use? ([Y]/n) ') or confirm
         if user_input == confirm or user_input == 'Y':
             break
         elif user_input == 'n':

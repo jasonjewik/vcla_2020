@@ -26,8 +26,7 @@ Please see the **Contents** section for advanced usage.
 
   - should be the only script you need to run
   - if something goes wrong, try running the following scripts in the order they are shown, except `graph_coords.py`
-  - crops images and labels them, putting them into GTAV_program/drivedata/results
-    - also generates a file called results.txt in the same folder with all of the parsed turn data
+  - creates labeled pickle files, putting them into GTAV_program/drivedata/results
   - if the --parent flag is set, the script expects the following directory structure:
 
     ```
@@ -166,7 +165,7 @@ Please see the **Contents** section for advanced usage.
 
 - `crop_images.py`
 
-  - crops the .jpg files in GTAV_program/drivedata/pickles/\*.pkl
+  - crops the .jpg files in GTAV_program/drivedata/imvid/\*.jpg
   - puts them into GTAV_program/drivedata/crop
   - assumes a motorcycle as viewed in 3rd person mode
 
@@ -179,11 +178,19 @@ Please see the **Contents** section for advanced usage.
 
   - displays a graphical representation of the coordinates in GTAV_program/drivedata/\*.csv
 
+- `test_results.py`
+  - unpickles the results in GTAV_program/drivedata/results
+  - uses cv2 to show the images
+  - prints the predicted keys to terminal
+
 ## To Do
 
 - [x] Parse drivedata CSV files
 - [x] Test on Windows
-- [ ] Train YOLOv3 model to determine braking/not-braking
+- [x] Train YOLOv3 model to determine braking/not-braking
+- [ ] Figure out why cv2.imshow has a GTK error on my machine
+- [ ] Run YOLOv3 model on cropped images to detect braking
+- [ ] Change `parse_turns.py` to print out keys
 
 ## Further Notes
 

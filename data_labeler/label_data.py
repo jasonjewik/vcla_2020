@@ -34,6 +34,9 @@ parser.add_argument('-s', '--system', action='store', metavar="OS", default=OS,
                     help='what OS you are on (this program should be able to \
                     determine, but just in case); please specify "windows" \
                     or "linux"')
+parser.add_argument('-k', '--keep', action='store', default=False,
+                    help='if specified, the program will not clean up any \
+                    intermediate files')
 args = parser.parse_args()
 
 # Check folder input
@@ -92,10 +95,27 @@ for direc in directories:
 
     # Parse turns
     crop_images(image_dir)
+    crop_dir = os.path.join(direc, 'crop')
     parse_turns(direc)
 
     print('all data has been labeled')
 
+    # Clean up intermediate files
+    if args.keep is False:
+        print('cleaning up intermediate files')
+        if OS == 'linux':
+            call(['rm -rf', pickle_dir])
+            call(['rm -rf', image_dir])
+            call(['rm -rf', crop_dir])
+        elif OS == 'windows':
+            call(['rmdir', pickle_dir, '/s', '/q'])
+            call(['rmdir', image_dir, '/s', '/q'])
+            call(['rmdir', crop_dir, '/s', '/q'])
+        else:
+            print('unrecognized OS somehow')
+        print('done with cleanup')
+
+    # Open workspace
     if args.open and not args.parent:
         print("opening workspace")
         if OS == "linux":
@@ -103,8 +123,9 @@ for direc in directories:
         elif OS == "windows":
             call(['explorer', direc])
         else:
-            printf(f"I'm not sure how, but we made a mistake here")
+            print(f"I'm not sure how, but we made a mistake here")
 
+# Open parent directory if open arg was specified
 if args.open and args.parent:
     print("opening workspace")
     if OS == "linux":
@@ -112,4 +133,4 @@ if args.open and args.parent:
     elif OS == "windows":
         call(['explorer', direc])
     else:
-        printf(f"I'm not sure how, but we made a mistake here")
+        print(f"I'm not sure how, but we made a mistake here")

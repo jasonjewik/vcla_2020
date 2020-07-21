@@ -46,6 +46,8 @@ def parse_turns(workspace_path):
     print('generating pickled results')
 
     num_items = len(drivedata)
+    prev_avg_pos_change = 0
+
     for i in range(0, num_items, 5):
         progress_bar(i, num_items)
 
@@ -83,10 +85,7 @@ def parse_turns(workspace_path):
             df.close()
 
         # changes in position
-        del_pos = vg.euclidean_distance(positions[:-1], positions[1:])
-
-        # find average change in position
-        avg_pos_change = float(np.average(del_pos))
+        del_pos = vg.euclidean_distance(positions[1:], positions[:-1])
 
         # changes in heading
         del_head = vg.signed_angle(
@@ -95,9 +94,29 @@ def parse_turns(workspace_path):
         # find average change in heading
         avg_head_change = float(np.average(del_head))
 
+        # determine keys
+        W = 0
+        A = 0
+        S = 0
+        D = 0
+
+        # detect acceleration
+        for p1, p2 in zip(del_pos[:-1], del_pos[1:]):
+            if p2 > p1:
+                W = 1
+            elif p2 < p1:
+                W = 0
+                break
+
+        # detect turns
+        if (avg_head_change <= -0.03):
+            D = 1
+        elif (avg_head_change >= 0.03):
+            A = 1
+
         # save to pickle file
         output = copy.copy(images)
-        output.append([avg_pos_change, avg_head_change])
+        output.append([A, D, W, S])
         outfile_path = os.path.join(result_dir, f'{str(i).zfill(9)}_res.pkl')
 
         out = open(outfile_path, 'wb')

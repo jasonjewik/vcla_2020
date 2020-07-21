@@ -172,7 +172,9 @@ Please see the **Contents** section for advanced usage.
 - `parse_turns.py`
 
   - parse the turns based on data in GTAV_program/drivedata/\*.csv and the .jpg files in GTAV_program/drivedata/crop
-  - determined by measuring the difference in the vehicle's headings between two points
+  - generates pkl files and puts them in GTAV_program/drivedata/results
+  - the pkl files are five frames formatted as Numpy arrays, followed by an array indicating the key presses
+  - key presses are formatted like \[A, D, W, S\]
 
 - `graph_coords.py`
 
@@ -180,8 +182,7 @@ Please see the **Contents** section for advanced usage.
 
 - `test_results.py`
   - unpickles the results in GTAV_program/drivedata/results
-  - uses cv2 to show the images
-  - prints the predicted keys to terminal
+  - uses cv2 to show the images and predicted keys
 
 ## To Do
 

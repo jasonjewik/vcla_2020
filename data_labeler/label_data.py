@@ -1,6 +1,7 @@
 import argparse
 import os
 import glob
+import shutil
 from generate_pickles import generate_pickles
 from generate_visuals import generate_images, generate_video
 from crop_images import crop_images
@@ -34,7 +35,7 @@ parser.add_argument('-s', '--system', action='store', metavar="OS", default=OS,
                     help='what OS you are on (this program should be able to \
                     determine, but just in case); please specify "windows" \
                     or "linux"')
-parser.add_argument('-k', '--keep', action='store', default=False,
+parser.add_argument('-k', '--keep', action='store_true', default=False,
                     help='if specified, the program will not clean up any \
                     intermediate files')
 args = parser.parse_args()
@@ -103,16 +104,9 @@ for direc in directories:
     # Clean up intermediate files
     if args.keep is False:
         print('cleaning up intermediate files')
-        if OS == 'linux':
-            call(['rm -rf', pickle_dir])
-            call(['rm -rf', image_dir])
-            call(['rm -rf', crop_dir])
-        elif OS == 'windows':
-            call(['rmdir', pickle_dir, '/s', '/q'])
-            call(['rmdir', image_dir, '/s', '/q'])
-            call(['rmdir', crop_dir, '/s', '/q'])
-        else:
-            print('unrecognized OS somehow')
+        shutil.rmtree(pickle_dir)
+        shutil.rmtree(image_dir)
+        shutil.rmtree(crop_dir)
         print('done with cleanup')
 
     # Open workspace

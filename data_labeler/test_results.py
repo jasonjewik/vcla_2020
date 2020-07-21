@@ -15,18 +15,25 @@ def display_pickles(result_path):
     files = natsorted(glob.glob(filepaths))
 
     # Parse files
-    for fi in files:
+    for ind, fi in enumerate(files):
         f = open(fi, 'rb')
         pkl = pickle.load(f)
         images = pkl[:-1]
         data = pkl[-1]
+        text = f'A: {data[0]}, D: {data[1]}, W: {data[2]}, S: {data[3]}'
 
-        print(data)
+        # text properties
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        org = (50, 50)
+        fontScale = 1
+        color = (0, 0, 255)
+        thickness = 2
 
         for im in images:
-            cv2.imshow("window", im)
-            cv2.waitKey()
-            exit(1)
+            image = cv2.putText(im, text, org, font, fontScale,
+                                color, thickness, cv2.LINE_AA, False)
+            cv2.imshow("window", image)
+            cv2.waitKey(0)
 
 
 if __name__ == '__main__':

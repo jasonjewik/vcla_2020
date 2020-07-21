@@ -1,0 +1,8 @@
+In this folder, you should have:
+- obj.data
+- classes.names
+- yolov3.cfg
+- yolov3_10000.weights
+
+All these files are included in the tar.gz archive here:
+https://drive.google.com/file/d/1ariEUydkqnxhP_eJlA5WcE3l0CcOKjrS/view?usp=sharing

@@ -35,6 +35,8 @@ def display_pickles(result_path):
             cv2.imshow("window", image)
             cv2.waitKey(0)
 
+        f.close()
+
 
 if __name__ == '__main__':
     # Get arguments

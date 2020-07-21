@@ -6,13 +6,14 @@ from generate_pickles import generate_pickles
 from generate_visuals import generate_images, generate_video
 from crop_images import crop_images
 from parse_turns import parse_turns
+from invoke_darknet import invoke_darknet, label_brakes
 from subprocess import call
 
 # Determine operating system
 if os.name == "nt":
     OS = "windows"
 elif os.name == "posix":
-    OS = "posix"
+    OS = "linux"
 else:
     OS = "unknown"
 
@@ -24,6 +25,8 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument('root_folder', action='store',
                     help='should be GTAV_program/drivedata')
+parser.add_argument('darknet_dir', action='store',
+                    help='should be wherever the darknet executable file is')
 parser.add_argument('-v', '--video', action='store_true',
                     help='whether to create video')
 parser.add_argument('-p', '--parent', action='store_true',
@@ -94,9 +97,15 @@ for direc in directories:
     if args.video:
         generate_video(pickle_dir)
 
-    # Parse turns
+    # crop images
     crop_images(image_dir)
     crop_dir = os.path.join(direc, 'crop')
+
+    # run darknet detection
+    invoke_darknet(crop_dir, args.darknet_dir)
+    label_brakes(crop_dir)
+
+    # Parse turns
     parse_turns(direc)
 
     print('all data has been labeled')

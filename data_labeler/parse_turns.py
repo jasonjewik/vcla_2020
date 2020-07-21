@@ -20,6 +20,12 @@ def parse_turns(workspace_path):
     drivedata = natsorted(glob.glob(drivedata_path))
     imagedata = natsorted(glob.glob(imagedata_path))
 
+    # get the parsed brake data from darknet
+    brakedata_path = os.path.join(workspace_path, "crop/results.pkl")
+    brakedata_file = open(brakedata_path, 'rb')
+    brakedata_contents = pickle.load(brakedata_file)
+    brakedata_array = list(brakedata_contents.values())
+
     # Check if the number of images matches the number of drivedata CSVs
     if len(imagedata) > len(drivedata):
         imagedata = imagedata[:len(drivedata)]
@@ -46,7 +52,6 @@ def parse_turns(workspace_path):
     print('generating pickled results')
 
     num_items = len(drivedata)
-    prev_avg_pos_change = 0
 
     for i in range(0, num_items, 5):
         progress_bar(i, num_items)
@@ -54,6 +59,7 @@ def parse_turns(workspace_path):
         positions = np.empty([5, 3])
         headings = np.empty([5, 3])
         images = []
+        braking = 0
 
         if (i + 1 > num_items - 5):
             break
@@ -63,6 +69,10 @@ def parse_turns(workspace_path):
             # Append images
             imf = cv2.imread(imagedata[j])
             images.append(imf)
+
+            # Get brake data values
+            if (brakedata_array[j] is True):
+                braking += 1
 
             # Open drivedata CSV file
             df = open(drivedata[j], 'r')
@@ -101,12 +111,15 @@ def parse_turns(workspace_path):
         D = 0
 
         # detect acceleration
-        for p1, p2 in zip(del_pos[:-1], del_pos[1:]):
-            if p2 > p1:
-                W = 1
-            elif p2 < p1:
-                W = 0
-                break
+        if (braking >= 3):
+            S = 1
+        else:
+            for p1, p2 in zip(del_pos[:-1], del_pos[1:]):
+                if p2 > p1:
+                    W = 1
+                elif p2 < p1:
+                    W = 0
+                    break
 
         # detect turns
         if (avg_head_change <= -0.03):

@@ -3,7 +3,11 @@ import os
 import argparse
 from natsort import natsorted
 
-from utils import progress_bar
+if __name__ == '__main__':  # assumes the program is run from utils directory
+    from progress_bar import progress
+else:  # assumes the program is run from label_data.py
+    from utils.progress_bar import progress
+
 
 def crop_images(image_folder):
     if not os.path.isdir(image_folder):
@@ -22,17 +26,18 @@ def crop_images(image_folder):
         for file in filelist:
             filepath = os.path.join(dst_folder, file)
             filepath = os.path.join(image_folder, file)
-            name, ext = os.path.splitext(filepath)
+            ext = os.path.splitext(filepath)[1]
             if ext == '.jpg':
                 os.remove(filepath)
 
     filelist = natsorted(os.listdir(image_folder))
     num_files = len(filelist)
 
+    print('cropping images')
     for i, file in enumerate(filelist):
-        progress_bar(i, num_files)
+        progress(i, num_files)
         filepath = os.path.join(image_folder, file)
-        name, ext = os.path.splitext(filepath)
+        ext = os.path.splitext(filepath)[1]
         if ext == '.jpg':
             img = cv2.imread(filepath)
             crop_img = img[320:720, 440:840]
@@ -40,6 +45,7 @@ def crop_images(image_folder):
                 os.path.join(dst_folder, f'{str(i).zfill(9)}_img.jpg'), crop_img)
 
     print(f'successfully cropped images, stored in {dst_folder}')
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(

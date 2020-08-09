@@ -1,16 +1,23 @@
 import time
 
 
-def progress_bar(current_item, total_items):
+def progress(current_item, total_items, fraction=False):
     current_item = current_item + 1
 
     complete = current_item / total_items * 100
+    if complete > 100:
+        complete = 100
     num_hashes = int(complete / 10)
     num_dots = 10 - num_hashes
 
+    if not fraction:
+        completion_string = f'{complete:.2f}%'
+    else:
+        completion_string = f'{current_item}/{total_items}'
+
     hashes = '#' * num_hashes
     dots = '.' * num_dots
-    progress_str = f'Progress: [ {hashes}{dots} ] {round(complete, 2)}%'
+    progress_str = f'Progress: [ {hashes}{dots} ] {completion_string}'
 
     if (current_item < total_items):
         endchar = '\r'
@@ -24,4 +31,4 @@ if __name__ == '__main__':
     max_num = 700
     for i in range(max_num):
         time.sleep(0.01)
-        progress_bar(i + 1, max_num)
+        progress(i + 1, max_num)

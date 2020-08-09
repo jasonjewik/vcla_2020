@@ -130,5 +130,4 @@ dmypy.json
 
 # Custom ignores
 *.pth
-data_labeler/data/data*/
 .vscode/*

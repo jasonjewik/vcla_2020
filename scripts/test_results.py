@@ -6,7 +6,11 @@ import numpy as np
 import glob
 from natsort import natsorted
 
-from utils import progress_bar
+# assumes the program is run from scripts directory
+import sys
+sys.path.insert(0, os.path.realpath('..'))
+if __name__ == '__main__':
+    from utils.progress_bar import progress
 
 
 def display_pickles(result_path):
@@ -16,6 +20,7 @@ def display_pickles(result_path):
 
     # Parse files
     for ind, fi in enumerate(files):
+        progress(ind, len(files), fraction=True)
         f = open(fi, 'rb')
         pkl = pickle.load(f)
         images = pkl[:-1]
@@ -29,11 +34,16 @@ def display_pickles(result_path):
         color = (0, 0, 255)
         thickness = 2
 
-        for im in images:
+        for j, im in enumerate(images):
             image = cv2.putText(im, text, org, font, fontScale,
                                 color, thickness, cv2.LINE_AA, False)
-            cv2.imshow("window", image)
-            cv2.waitKey(0)
+            cv2.imshow("press 'q' to quit", image)
+            key = cv2.waitKey(0)
+
+            if key == ord('q'):
+                print()
+                f.close()
+                exit()
 
         f.close()
 

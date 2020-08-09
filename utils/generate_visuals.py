@@ -5,7 +5,10 @@ import numpy as np
 from natsort import natsorted
 import argparse
 
-from utils import progress_bar
+if __name__ == '__main__':  # assumes the program is run from utils directory
+    from progress_bar import progress
+else:  # assumes the program is run from label_data.py
+    from utils.progress_bar import progress
 
 
 def __read_pickle_files__(source_folder_path):
@@ -16,7 +19,7 @@ def __read_pickle_files__(source_folder_path):
     print('reading pickle files')
 
     for i, file in enumerate(filelist):
-        progress_bar(i, num_files)
+        progress(i, num_files)
         filepath = os.path.join(source_folder_path, file)
 
         if os.path.isfile(filepath):
@@ -34,7 +37,7 @@ def __generate_images__(dst_folder, imgs):
     num_imgs = len(imgs)
 
     for i, img in enumerate(imgs):
-        progress_bar(i, num_imgs)
+        progress(i, num_imgs)
         cv2.imwrite(os.path.join(
             dst_folder, f'{str(i).zfill(9)}_img.jpg'), img)
     print(f'successfully converted to images, stored in {dst_folder}')
@@ -44,7 +47,7 @@ def __generate_video__(dst_folder, imgs):
     print('generating video')
     num_imgs = len(imgs)
 
-    height, width, layers = imgs[1].shape
+    height, width = imgs[1].shape[:2]
     fps = 10
 
     fourcc = cv2.VideoWriter_fourcc(*'XVID')
@@ -52,7 +55,7 @@ def __generate_video__(dst_folder, imgs):
     video = cv2.VideoWriter(vidpath, fourcc, fps, (width, height))
 
     for i in range(len(imgs)):
-        progress_bar(i, num_imgs)
+        progress(i, num_imgs)
         video.write(imgs[i])
 
     cv2.destroyAllWindows()
@@ -73,10 +76,10 @@ def generate_images(src_folder):
         filelist = os.listdir(dst_folder)
         for file in filelist:
             filepath = os.path.join(dst_folder, file)
-            name, ext = os.path.splitext(filepath)
             os.remove(filepath)
 
     __generate_images__(dst_folder, imgs)
+
 
 def generate_video(src_folder):
     dst_folder = os.path.join(src_folder, '..', 'imvid')

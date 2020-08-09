@@ -52,6 +52,7 @@ axes.set_ylabel('y')
 axes.set_zlabel('z')
 
 line = axes.plot3D(x_coords, y_coords, z_coords, 'green')
-vecs = axes.quiver(x_coords, y_coords, z_coords, u, v, w, length=5, normalize=True)
+vecs = axes.quiver(x_coords, y_coords, z_coords, u,
+                   v, w, length=5, normalize=True)
 
 plt.show()

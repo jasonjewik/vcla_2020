@@ -2,12 +2,12 @@ import argparse
 import os
 import glob
 import shutil
-from generate_pickles import generate_pickles
-from generate_visuals import generate_images, generate_video
-from crop_images import crop_images
-from parse_turns import parse_turns
-from invoke_darknet import invoke_darknet, label_brakes
 from subprocess import call
+from utils.read_raw_data import read_raw_data
+from utils.generate_visuals import generate_images, generate_video
+from utils.crop_images import crop_images
+from utils.parse_turns import parse_turns
+from utils.detect_brakes import detect_brakes
 
 # Determine operating system
 if os.name == "nt":
@@ -25,8 +25,8 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument('root_folder', action='store',
                     help='should be GTAV_program/drivedata')
-parser.add_argument('darknet_dir', action='store',
-                    help='should be wherever the darknet executable file is')
+parser.add_argument('checkpoint_file', action='store',
+                    help='should be wherever the pytorch checkpoint file is; see README')
 parser.add_argument('-v', '--video', action='store_true',
                     help='whether to create video')
 parser.add_argument('-p', '--parent', action='store_true',
@@ -86,27 +86,44 @@ else:
     exit(1)
 
 # Loop through directories
-for direc in directories:
+num_steps = 6 if args.video else 5
+curr_step = 1
+for dirnum, direc in enumerate(directories):
+    print(f'=== DIRECTORY {dirnum + 1} OF {len(directories)} ===')
+
+    # Read data
+    print(f'=> STEP {curr_step}/{num_steps}')
+    read_raw_data(direc)
+    curr_step += 1
+
     # Generate images
-    generate_pickles(direc)
+    print(f'=> STEP {curr_step}/{num_steps}')
     pickle_dir = os.path.join(direc, 'pickles')
     generate_images(pickle_dir)
     image_dir = os.path.join(direc, 'imvid')
+    curr_step += 1
 
     # Optional: create video
     if args.video:
+        print(f'=> STEP {curr_step}/{num_steps}')
         generate_video(pickle_dir)
+        curr_step += 1
 
     # crop images
+    print(f'=> STEP {curr_step}/{num_steps}')
     crop_images(image_dir)
-    crop_dir = os.path.join(direc, 'crop')
+    curr_step += 1
 
-    # run darknet detection
-    invoke_darknet(crop_dir, args.darknet_dir)
-    label_brakes(crop_dir)
+    # run brake detection
+    print(f'=> STEP {curr_step}/{num_steps}')
+    crop_dir = os.path.join(direc, 'crop')
+    detect_brakes(crop_dir, args.checkpoint_file)
+    curr_step += 1
 
     # Parse turns
+    print(f'=> STEP {curr_step}/{num_steps}')
     parse_turns(direc)
+    curr_step += 1
 
     print('all data has been labeled')
 

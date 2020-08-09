@@ -9,20 +9,24 @@ import argparse
 import vg
 import pickle
 import copy
-from progress_bar import progress
+
+if __name__ == '__main__':  # assumes the program is run from utils directory
+    from progress_bar import progress
+else:  # assumes the program is run from label_data.py
+    from utils.progress_bar import progress
 
 
 def parse_turns(workspace_path):
     # Get the drive and image data
     drivedata_path = os.path.join(workspace_path, "*.csv")
-    imagedata_path = os.path.join(workspace_path, "imvid/*.jpg")
     drivedata = natsorted(glob.glob(drivedata_path))
-    imagedata = natsorted(glob.glob(imagedata_path))
 
-    # get the parsed brake data from darknet
-    brakedata_path = os.path.join(workspace_path, "crop/results.pkl")
+    # get the parsed brake data
+    brakedata_path = os.path.join(
+        workspace_path, "crop", "brake_detect_results.pkl")
     brakedata_file = open(brakedata_path, 'rb')
     brakedata_contents = pickle.load(brakedata_file)
+    imagedata = list(brakedata_contents.keys())
     brakedata_array = list(brakedata_contents.values())
 
     # Check if the number of images matches the number of drivedata CSVs
@@ -134,6 +138,7 @@ def parse_turns(workspace_path):
         out = open(outfile_path, 'wb')
         pickle.dump(output, out)
 
+    progress(num_items, num_items)
     print(f'done writing results to {result_dir}')
 
 

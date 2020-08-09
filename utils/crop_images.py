@@ -3,7 +3,10 @@ import os
 import argparse
 from natsort import natsorted
 
-from progress_bar import progress
+if __name__ == '__main__':  # assumes the program is run from utils directory
+    from progress_bar import progress
+else:  # assumes the program is run from label_data.py
+    from utils.progress_bar import progress
 
 
 def crop_images(image_folder):

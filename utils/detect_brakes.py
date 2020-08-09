@@ -7,22 +7,18 @@ import cv2
 import pickle
 import time
 
-import sys
-# assumes the program is run from inside the utils folder
-# i.e., we type `python detect_brakes.py`, not
-# `python utils/detect_brakes.py` to execute it
-if __name__ == '__main__':
-    sys.path.insert(0, os.path.realpath(".."))
-# assumes the program is being called by label_data.py
-else:
-    pass
+if __name__ == '__main__':  # assumes the program is run from utils directory
+    from progress_bar import progress
+    import sys
+    sys.path.insert(0, os.path.realpath('..'))
+else:  # assumes the program is run from label_data.py
+    from utils.progress_bar import progress
 
 from pytorch_classifier.net import Net
 from pytorch_classifier.prepare_data import prepare_data
-from progress_bar import progress
 
 
-def detect_brakes(workspace_folder, checkpoint_file):
+def detect_brakes(crop_folder, checkpoint_file):
     # Load the model
     net = Net()
     net.load_state_dict(torch.load(checkpoint_file))
@@ -30,7 +26,7 @@ def detect_brakes(workspace_folder, checkpoint_file):
     net.to(device)
 
     # Get images
-    cropped_path = os.path.join(workspace_folder, "crop/*.jpg")
+    cropped_path = os.path.join(crop_folder, "*.jpg")
     files = natsorted(glob.glob(cropped_path))
 
     # Results dict
@@ -47,7 +43,12 @@ def detect_brakes(workspace_folder, checkpoint_file):
         outputs = net(inputs)
 
         predicted = torch.max(outputs.data, 1)[1].item()
-        results[f] = predicted
+
+        if predicted == 0:
+            results[f] = True
+        elif predicted == 1:
+            results[f] = False
+
     end_time = time.time()
 
     avg_time = (end_time - start_time)/len(files) * 1000
@@ -55,7 +56,7 @@ def detect_brakes(workspace_folder, checkpoint_file):
 
     # Write results to pickle file
     dest_file = 'brake_detect_results.pkl'
-    dest_path = os.path.join(workspace_folder, dest_file)
+    dest_path = os.path.join(crop_folder, dest_file)
     with open(dest_path, 'wb') as f:
         pickle.dump(results, f)
     print(f'wrote results to {dest_path}')
@@ -66,13 +67,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         description='Detects brakes in the cropped images, writing to brake_detect_results.pkl'
     )
-    parser.add_argument('workspace_folder', action='store',
-                        help='should be GTAV_program/drivedata')
+    parser.add_argument('crop_folder', action='store',
+                        help='should be GTAV_program/drivedata/crop')
     parser.add_argument('checkpoint_file', action='store',
-                        help='should be ./checkpoints/__.pth')
+                        help='should be checkpoints/__.pth')
     args = parser.parse_args()
 
-    if not os.path.isdir(args.workspace_folder):
+    if not os.path.isdir(args.crop_folder):
         print('the specified source folder does not exist')
         print('please run crop_images.py first')
         exit(1)
@@ -81,4 +82,4 @@ if __name__ == '__main__':
         print('the checkpoint file does not exist')
         exit(1)
 
-    detect_brakes(args.workspace_folder, args.checkpoint_file)
+    detect_brakes(args.crop_folder, args.checkpoint_file)

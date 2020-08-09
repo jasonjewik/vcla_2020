@@ -4,14 +4,17 @@ import cv2
 import pickle
 import argparse
 
-from progress_bar import progress
+if __name__ == '__main__':  # assumes the program is run from utils directory
+    from progress_bar import progress
+else:  # assumes the program is run from label_data.py
+    from utils.progress_bar import progress
 
 # expects images to be 1280x720
 # thus, the resolution of GTA V should be 1280x720
 # when recording data
 
 
-def generate_pickles(root_folder_path):
+def read_raw_data(root_folder_path):
     dst_folder = os.path.join(root_folder_path, 'pickles')
 
     if not os.path.isdir(dst_folder):
@@ -53,4 +56,4 @@ if __name__ == '__main__':
         print('the specified root folder does not exist')
         exit(1)
 
-    generate_pickles(args.root_folder)
+    read_raw_data(args.root_folder)

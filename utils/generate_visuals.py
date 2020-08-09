@@ -5,7 +5,10 @@ import numpy as np
 from natsort import natsorted
 import argparse
 
-from progress_bar import progress
+if __name__ == '__main__':  # assumes the program is run from utils directory
+    from progress_bar import progress
+else:  # assumes the program is run from label_data.py
+    from utils.progress_bar import progress
 
 
 def __read_pickle_files__(source_folder_path):

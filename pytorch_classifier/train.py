@@ -1,44 +1,37 @@
 import torch
 from torch.utils.data import DataLoader
-import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
 from motorcycle_dataset import MotorcycleDataset, TrainPipeline, TestPipeline
-
-
-class Net(nn.Module):
-    def __init__(self):
-        super(Net, self).__init__()
-        self.conv1 = nn.Conv2d(3, 6, 5)
-        self.pool = nn.MaxPool2d(2, 2)
-        self.conv2 = nn.Conv2d(6, 16, 5)
-        self.fc1 = nn.Linear(16 * 29 * 29, 120)
-        self.fc2 = nn.Linear(120, 84)
-        self.fc3 = nn.Linear(84, 2)
-
-    def forward(self, x):
-        x = self.pool(F.relu(self.conv1(x)))
-        x = self.pool(F.relu(self.conv2(x)))
-        x = x.view(-1, 16 * 29 * 29)
-        x = F.relu(self.fc1(x))
-        x = F.relu(self.fc2(x))
-        x = self.fc3(x)
-        return x
-
+import os
+import os.path as osp
+import torch.nn as nn
+from net import Net
 
 if __name__ == "__main__":
-    root_dir = "C:\\Users\\jewik\\GitRepos\\pytorch_classifier\\data"
+    root_dir = ".\\data"
+    checkpoint_dir = ".\\checkpoints"
+
+    if not osp.exists(checkpoint_dir):
+        os.mkdir(checkpoint_dir)
 
     train_dataset = MotorcycleDataset(
         root_dir, "train", transform=TrainPipeline)
+    print(f"# of Training samples: {len(train_dataset)}")
     val_dataset = MotorcycleDataset(
         root_dir, "val", transform=TestPipeline)
+    print(f"# of Validation samples: {len(val_dataset)}")
+
+    batch_size = 4
+    num_epochs = 10
+    print(f"Batch size: {batch_size}")
+    print(f"# of epochs: {num_epochs}")
+    print()
 
     classes = train_dataset.get_class_names()
     train_loader = DataLoader(
-        train_dataset, batch_size=4, shuffle=True, num_workers=0)
+        train_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
     val_loader = DataLoader(
-        val_dataset, batch_size=4, shuffle=True, num_workers=0)
+        val_dataset, batch_size=batch_size, shuffle=True, num_workers=0)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     net = Net()
@@ -46,7 +39,7 @@ if __name__ == "__main__":
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
 
-    for epoch in range(10):  # loop over the dataset multiple times
+    for epoch in range(num_epochs):  # loop over the dataset multiple times
         print(f"Epoch: {epoch + 1}")
 
         running_loss = 0.0
@@ -67,7 +60,7 @@ if __name__ == "__main__":
             running_loss += loss.item()
             if i % 500 == 499:    # print every 500 mini-batches
                 # loss
-                print(f"Loss: {running_loss / 500 }")
+                print(f"Loss: {(running_loss / 500):.3f}")
                 running_loss = 0.0
 
         # print validation data metrics every epoch
@@ -96,14 +89,15 @@ if __name__ == "__main__":
                     if (g == 0 and t == 1):
                         false_negatives += 1
 
-        print(f"Accuracy: {100 * correct / total}")
+        print(f"Accuracy: {(100 * correct / total):.3f}%")
         print(
-            f"Precision: {100 * true_positives / (true_positives + false_positives)}")
+            f"Precision: {(100 * true_positives / (true_positives + false_positives)):.3f}%")
         print(
-            f"Recall: {100 * true_positives / (true_positives + false_negatives)}")
+            f"Recall: {(100 * true_positives / (true_positives + false_negatives)):.3f}%")
         print()
 
-        PATH = f"./motorcycle_net_epoch{epoch + 1}.pth"
-        torch.save(net.state_dict(), PATH)
+        checkpoint = f"./motorcycle_net_epoch{str(epoch + 1).zfill(2)}.pth"
+        torch.save(net.state_dict(), osp.join(checkpoint_dir, checkpoint))
 
     print("Finished Training")
+    print()

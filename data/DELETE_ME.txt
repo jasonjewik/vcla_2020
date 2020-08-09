@@ -1,0 +1,1 @@
+See the README in pytorch_classifier for how to label training data for the classifier.

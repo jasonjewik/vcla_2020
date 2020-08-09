@@ -1,6 +1,19 @@
-# Logs
+## Sample output of `prepare_data.py`
+```
+Detected OS: windows
+== Instructions ==
+1. press "A" to label the image as "brake light on"
+2. press "D" to label the image as "brake light off"
+3. press "Q" to quit
+4. press "B" to go back one image
+5. press any other key to skip
+Progress: [ ########## ] 294/294
+done labeling data
+first result saved to C:\Users\jewik\GitRepos\vcla_2020\data\000007774.pkl
+last result saved to C:\Users\jewik\GitRepos\vcla_2020\data\000008067.pkl
+```
 
-## Classifier training log
+## Original classifier training log
 ```
 > python train_classifier.py
 # of Training samples: 6219
@@ -86,7 +99,7 @@ Recall: 100.000%
 Finished Training
 ```
 
-## Classifier testing Log
+## Original classifier testing log
 ```
 > python test_classifier.py
 Using .\models\motorcycle_net_epoch10.pth

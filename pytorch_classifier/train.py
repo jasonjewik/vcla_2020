@@ -8,24 +8,31 @@ import torch.nn as nn
 from net import Net
 
 if __name__ == "__main__":
-    root_dir = ".\\data"
-    checkpoint_dir = ".\\checkpoints"
+    root_dir = "../data"
+    checkpoint_dir = "../checkpoints"
 
     if not osp.exists(checkpoint_dir):
         os.mkdir(checkpoint_dir)
 
     train_dataset = MotorcycleDataset(
         root_dir, "train", transform=TrainPipeline)
-    print(f"# of Training samples: {len(train_dataset)}")
+    print(f"Training samples: {len(train_dataset)}")
     val_dataset = MotorcycleDataset(
         root_dir, "val", transform=TestPipeline)
-    print(f"# of Validation samples: {len(val_dataset)}")
+    print(f"Validation samples: {len(val_dataset)}")
 
     batch_size = 4
     num_epochs = 10
     print(f"Batch size: {batch_size}")
-    print(f"# of epochs: {num_epochs}")
-    print()
+    print(f"Epochs: {num_epochs}")
+
+    start_training = False
+    while not start_training:
+        user_input = input("Do you want to start training? [Y/n] ")
+        if user_input == 'n':
+            exit(1)
+        else:
+            start_training = True
 
     classes = train_dataset.get_class_names()
     train_loader = DataLoader(

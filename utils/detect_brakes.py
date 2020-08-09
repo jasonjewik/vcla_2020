@@ -15,7 +15,7 @@ else:  # assumes the program is run from label_data.py
     from utils.progress_bar import progress
 
 from pytorch_classifier.net import Net
-from pytorch_classifier.prepare_data import prepare_data
+from pytorch_classifier.prepare_data import prepare_for_eval
 
 
 def detect_brakes(crop_folder, checkpoint_file):
@@ -39,7 +39,7 @@ def detect_brakes(crop_folder, checkpoint_file):
         progress(i, len(files))
 
         raw_img = cv2.imread(f)
-        inputs = prepare_data(raw_img).to(device)
+        inputs = prepare_for_eval(raw_img).to(device)
         outputs = net(inputs)
 
         predicted = torch.max(outputs.data, 1)[1].item()

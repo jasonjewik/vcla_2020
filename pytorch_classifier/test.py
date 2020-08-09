@@ -5,19 +5,19 @@ from motorcycle_dataset import MotorcycleDataset, TestPipeline, show_label_batch
 
 if __name__ == "__main__":
     net = Net()
-    checkpoint_file = '.\\checkpoints\\motorcycle_net_epoch10.pth'
+    checkpoint_file = '..\\checkpoints\\motorcycle_net_epoch10.pth'
     net.load_state_dict(torch.load(checkpoint_file))
     print('Using', checkpoint_file)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     net.to(device)
 
-    root_dir = "C:\\Users\\jewik\\GitRepos\\pytorch_classifier\\data"
+    root_dir = "..\\data"
     test_dataset = MotorcycleDataset(root_dir, "test", transform=TestPipeline)
     classes = test_dataset.get_class_names()
     test_loader = DataLoader(test_dataset, batch_size=4,
                              shuffle=True, num_workers=0)
-    print(f"# of Testing samples: {len(test_dataset)}")
+    print(f"Testing samples: {len(test_dataset)}")
 
     correct, total = 0, 0
     true_positives, false_positives = 0, 0

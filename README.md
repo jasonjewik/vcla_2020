@@ -110,7 +110,8 @@ This section does not descibe _all_ contents of this repository. It only mention
 
 ### pytorch_classifier directory
 - `README.md`
-  - sample `prepare_data.py` output training/testing logs for the pytorch classifier
+  - sample `prepare_data.py` output 
+  - training/testing logs for the pytorch classifier
 - `prepare_data.py`
   - a tool for quickly labeling data
   - results are put into the top-level data subdirectory

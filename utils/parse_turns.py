@@ -56,7 +56,7 @@ def parse_turns(workspace_path):
 
     num_items = len(drivedata)
 
-    for i in range(0, num_items, 5):
+    for i in range(0, num_items):
         progress(i, num_items)
 
         positions = np.empty([5, 3])

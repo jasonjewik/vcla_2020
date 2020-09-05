@@ -34,10 +34,13 @@ def display_pickles(result_path):
         color = (0, 0, 255)
         thickness = 2
 
-        for j, im in enumerate(images):
+        # truncated file name
+        fname = fi.split('\\')[-1]
+
+        for im in images:
             image = cv2.putText(im, text, org, font, fontScale,
                                 color, thickness, cv2.LINE_AA, False)
-            cv2.imshow("press 'q' to quit", image)
+            cv2.imshow(fname, image)
             key = cv2.waitKey(0)
 
             if key == ord('q'):
@@ -45,6 +48,7 @@ def display_pickles(result_path):
                 f.close()
                 exit()
 
+        cv2.destroyWindow(fname)
         f.close()
 
 
@@ -62,4 +66,5 @@ if __name__ == '__main__':
         print('please generate the results first')
         exit(1)
 
+    print("press 'q' to quit")
     display_pickles(args.result_path)

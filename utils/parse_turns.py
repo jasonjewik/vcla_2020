@@ -107,6 +107,9 @@ def parse_turns(workspace_path):
         # find average change in heading
         avg_head_change = float(np.average(del_head))
 
+        # find average change in position
+        avg_pos_change = float(np.average(del_pos))
+
         # determine keys
         W = 0
         A = 0
@@ -114,7 +117,7 @@ def parse_turns(workspace_path):
         D = 0
 
         # detect acceleration
-        if (braking >= 3):
+        if (braking >= 3 and avg_pos_change >= 0.1):
             S = 1
         else:
             for p1, p2 in zip(del_pos[:-1], del_pos[1:]):

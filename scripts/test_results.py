@@ -35,7 +35,7 @@ def display_pickles(result_path):
         thickness = 2
 
         # truncated file name
-        fname = fi.split('\\')[-1]
+        fname = os.path.split(fi)[-1]
 
         for im in images:
             image = cv2.putText(im, text, org, font, fontScale,

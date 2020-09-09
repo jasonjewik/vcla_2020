@@ -16,18 +16,27 @@ else:  # assumes the program is run from label_data.py
     from utils.progress_bar import progress
 
 
+def __convert_paths__(impath):
+    direc, image = os.path.split(impath)
+    parent_direc, _ = os.path.split(direc)
+    new_parent_direc = os.path.join(parent_direc, 'imvid')
+    return os.path.join(new_parent_direc, image)
+
+
 def parse_turns(workspace_path):
     # Get the drive and image data
     drivedata_path = os.path.join(workspace_path, "*.csv")
     drivedata = natsorted(glob.glob(drivedata_path))
 
-    # get the parsed brake data
+    # Get the parsed brake data
     brakedata_path = os.path.join(
         workspace_path, "crop", "brake_detect_results.pkl")
     brakedata_file = open(brakedata_path, 'rb')
     brakedata_contents = pickle.load(brakedata_file)
-    imagedata = list(brakedata_contents.keys())
     brakedata_array = list(brakedata_contents.values())
+
+    # Get paths to the uncropped images
+    imagedata = list(map(__convert_paths__, brakedata_contents.keys()))
 
     # Check if the number of images matches the number of drivedata CSVs
     if len(imagedata) > len(drivedata):

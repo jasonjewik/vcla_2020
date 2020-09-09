@@ -4,6 +4,7 @@ import pickle
 import numpy as np
 from natsort import natsorted
 import argparse
+import random
 
 if __name__ == '__main__':  # assumes the program is run from utils directory
     from progress_bar import progress
@@ -38,6 +39,12 @@ def __generate_images__(dst_folder, imgs):
 
     for i, img in enumerate(imgs):
         progress(i, num_imgs)
+
+        # 50% chance of putting a black rectangle in the corner (hiding the mini-map)
+        # Assumes a 1280x720 image
+        if random.randint(0, 1) == 0:
+            img = cv2.rectangle(img, (0, 560), (210, 720), (0, 0, 0), -1)
+
         cv2.imwrite(os.path.join(
             dst_folder, f'{str(i).zfill(9)}_img.jpg'), img)
     print(f'successfully converted to images, stored in {dst_folder}')

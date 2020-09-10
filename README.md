@@ -2,10 +2,10 @@
 
 ## Quick Start
 
-Please install the provided conda environment with the following command:
+Please install the provided conda environment with the following command. If you are on a Linux machine, switch the environment file to linux_env.yml.
 
 ```
-$ conda env create -f conda_envs/windows/data_labeler.yml
+$ conda env create -f win_env.yml
 ```
 
 Next, download and extract this [tar.gz archive](https://drive.google.com/file/d/1oGUJKXzhc7VVT5_20n9bs61CPyOyE7UO/view?usp=sharing) - the files contained within should go into the checkpoints folder.
@@ -17,8 +17,6 @@ Your directory structure should look like this:
    |   |-- motorcycle_net_epoch01.pth
    |   |-- ...other checkpoints...
    |   |-- motorcycle_net_epoch10.pth
-   |-- conda_envs
-   |   |-- ...subdirectories...
    |-- data
    |   |-- ...pickled files...
    |-- pytorch_classifier
@@ -28,6 +26,8 @@ Your directory structure should look like this:
    |-- utils
    |   |-- ...utility functions...
    |-- label_data.py
+   |-- win_env.yml
+   |-- linux_env.yml
    |-- README.md
 ```
 
@@ -134,7 +134,7 @@ This section does not descibe _all_ contents of this repository. It only mention
 - [x] Change to pytorch model
 - [x] Reorganize repostiroy contents
 - [ ] Refactor code for consistency
-- [ ] Test on Linux
+- [x] Test on Linux
 - [ ] Test classifier on data labeled with `prepare_data.py`
 
 ## Further Notes

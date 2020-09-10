@@ -26,6 +26,10 @@ def read_raw_data(root_folder_path):
             os.remove(filepath)
 
     first_file_path = os.path.join(root_folder_path, 'RGB_whole.raw')
+    if not os.path.exists(first_file_path):
+        print(f'RGB_whole.raw does not exist in {root_folder_path}')
+        print('please double check the directory')
+        exit(1)
 
     print('reading RGB_whole.raw')
     rgbData = np.fromfile(first_file_path, dtype=np.uint8)

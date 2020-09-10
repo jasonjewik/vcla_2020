@@ -4,7 +4,7 @@ import glob
 import shutil
 from subprocess import call
 from utils.read_raw_data import read_raw_data
-from utils.generate_visuals import generate_images, generate_video
+from utils.generate_visuals import generate_images, generate_images_and_video
 from utils.crop_images import crop_images
 from utils.parse_turns import parse_turns
 from utils.detect_brakes import detect_brakes
@@ -27,26 +27,37 @@ parser.add_argument('root_folder', action='store',
                     help='should be GTAV_program/drivedata')
 parser.add_argument('checkpoint_file', action='store',
                     help='should be wherever the pytorch checkpoint file is; see README')
+parser.add_argument('-p', '--parent', action='store_true',
+                    help='whether the root folder is a parent folder, see README \
+                    for details')
 parser.add_argument('-v', '--video', action='store_true',
                     help='whether to create video')
-parser.add_argument('-p', '--parent', action='store_true',
-                    help='whether the root folder is a parent folder, \
-                    see README for details')
 parser.add_argument('-o', '--open', action='store_true',
                     help='whether to open directory when done')
+parser.add_argument('-k', '--keep', action='store_true', default=False,
+                    help='if specified, the program will not clean up any \
+                    intermediate files')
 parser.add_argument('-s', '--system', action='store', metavar="OS", default=OS,
                     help='what OS you are on (this program should be able to \
                     determine, but just in case); please specify "windows" \
                     or "linux"')
-parser.add_argument('-k', '--keep', action='store_true', default=False,
-                    help='if specified, the program will not clean up any \
-                    intermediate files')
+parser.add_argument('-r', '--resize', action='store_true', default=False,
+                    help='if specified, the result pickles will contain 1280x720 images \
+                    scaled down to 320x180')
+parser.add_argument('-c', '--crop', action='store_true', default=False,
+                    help='if specified, the result pickles will contain 400x400 images \
+                    cropped from the original 1280x720 images')
 args = parser.parse_args()
 
 # Check folder input
 root_folder = args.root_folder
 if not os.path.isdir(root_folder):
     print('the specified root folder does not exist')
+    exit(1)
+
+# Check for output type
+if args.resize is False and args.crop is False:
+    print('please specify either --resize, --crop, or both')
     exit(1)
 
 # Get the child directories
@@ -57,18 +68,29 @@ if args.parent:
     for f in files:
         if os.path.isdir(f):
             directories.append(f)
-            print(f)
 
     # ask user for confirmation
-    confirm = True
     while True:
+        for d in directories:
+            print(f'> {os.path.split(d)[-1]}')
         user_input = input(
-            'Are these the folders you want to use? ([Y]/n) ') or confirm
-        if user_input == confirm or user_input == 'Y':
+            'Are these the child directories you want to use? ([Y]/n) ') or True
+
+        if user_input is True or user_input == 'Y':
             break
         elif user_input == 'n':
-            print('exiting')
-            exit(1)
+            print('Stepping through the child directories one at a time...')
+            for i, d in enumerate(directories):
+                while True:
+                    user_input = input(f'Do you want to use "{os.path.split(d)[-1]}"? ([Y]/n) ') or True
+                    if user_input is True or user_input == 'Y':
+                        break
+                    elif user_input == 'n':
+                        directories[i] = None
+                        break
+                    else:
+                        print('invalid input')
+            directories = [d for d in directories if d is not None]
         else:
             print('invalid input')
 
@@ -86,9 +108,9 @@ else:
     exit(1)
 
 # Loop through directories
-num_steps = 6 if args.video else 5
-curr_step = 1
+num_steps = 5
 for dirnum, direc in enumerate(directories):
+    curr_step = 1
     print(f'=== DIRECTORY {dirnum + 1} OF {len(directories)} ===')
 
     # Read data
@@ -99,15 +121,12 @@ for dirnum, direc in enumerate(directories):
     # Generate images
     print(f'=> STEP {curr_step}/{num_steps}')
     pickle_dir = os.path.join(direc, 'pickles')
-    generate_images(pickle_dir)
+    if not args.video:
+        generate_images(pickle_dir)
+    else:
+        generate_images_and_video(pickle_dir)
     image_dir = os.path.join(direc, 'imvid')
     curr_step += 1
-
-    # Optional: create video
-    if args.video:
-        print(f'=> STEP {curr_step}/{num_steps}')
-        generate_video(pickle_dir)
-        curr_step += 1
 
     # crop images
     print(f'=> STEP {curr_step}/{num_steps}')
@@ -122,7 +141,7 @@ for dirnum, direc in enumerate(directories):
 
     # Parse turns
     print(f'=> STEP {curr_step}/{num_steps}')
-    parse_turns(direc)
+    parse_turns(direc, args.resize, args.crop)
     curr_step += 1
 
     print('all data has been labeled')
@@ -149,8 +168,8 @@ for dirnum, direc in enumerate(directories):
 if args.open and args.parent:
     print("opening workspace")
     if OS == "linux":
-        call(['xdg-open', direc])
+        call(['xdg-open', root_folder])
     elif OS == "windows":
-        call(['explorer', direc])
+        call(['explorer', root_folder])
     else:
         print(f"I'm not sure how, but we made a mistake here")

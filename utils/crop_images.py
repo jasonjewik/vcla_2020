@@ -25,7 +25,6 @@ def crop_images(image_folder):
         filelist = os.listdir(dst_folder)
         for file in filelist:
             filepath = os.path.join(dst_folder, file)
-            filepath = os.path.join(image_folder, file)
             ext = os.path.splitext(filepath)[1]
             if ext == '.jpg':
                 os.remove(filepath)

@@ -58,7 +58,8 @@ if __name__ == '__main__':
         description='Checks the results'
     )
     parser.add_argument('result_path', action='store',
-                        help='should be GTAV_program/results')
+                        help='should be GTAV_program/results_resized or \
+                        GTAV_program/results_cropped')
     args = parser.parse_args()
 
     if not os.path.isdir(args.result_path):

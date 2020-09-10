@@ -4,7 +4,6 @@ import pickle
 import numpy as np
 from natsort import natsorted
 import argparse
-import random
 
 if __name__ == '__main__':  # assumes the program is run from utils directory
     from progress_bar import progress
@@ -33,18 +32,22 @@ def __read_pickle_files__(source_folder_path):
     return imgs
 
 
+def __prep_dest_folder__(dst_folder):
+    if not os.path.exists(dst_folder):
+        os.mkdir(dst_folder)
+    else:
+        filelist = os.listdir(dst_folder)
+        for file in filelist:
+            filepath = os.path.join(dst_folder, file)
+            os.remove(filepath)
+
+
 def __generate_images__(dst_folder, imgs):
     print('generating images')
     num_imgs = len(imgs)
 
     for i, img in enumerate(imgs):
         progress(i, num_imgs)
-
-        # 50% chance of putting a black rectangle in the corner (hiding the mini-map)
-        # Assumes a 1280x720 image
-        if random.randint(0, 1) == 0:
-            img = cv2.rectangle(img, (0, 560), (210, 720), (0, 0, 0), -1)
-
         cv2.imwrite(os.path.join(
             dst_folder, f'{str(i).zfill(9)}_img.jpg'), img)
     print(f'successfully converted to images, stored in {dst_folder}')
@@ -71,27 +74,19 @@ def __generate_video__(dst_folder, imgs):
 
 
 def generate_images(src_folder):
-    imgs = __read_pickle_files__(src_folder)
-
     dst_folder = os.path.join(src_folder, '..', 'imvid')
     dst_folder = os.path.abspath(dst_folder)
-
-    # clear out dst_folder if already exists
-    if not os.path.exists(dst_folder):
-        os.mkdir(dst_folder)
-    else:
-        filelist = os.listdir(dst_folder)
-        for file in filelist:
-            filepath = os.path.join(dst_folder, file)
-            os.remove(filepath)
-
+    __prep_dest_folder__(dst_folder)
+    imgs = __read_pickle_files__(src_folder)
     __generate_images__(dst_folder, imgs)
 
 
-def generate_video(src_folder):
-    dst_folder = os.path.join(src_folder, '..', 'imvid')
+def generate_images_and_video(src_folder):
+    dst_folder = os.path.join(args.source_folder, '..', 'imvid')
     dst_folder = os.path.abspath(dst_folder)
-    imgs = __read_pickle_files__(src_folder)
+    __prep_dest_folder__(dst_folder)
+    imgs = __read_pickle_files__(args.source_folder)
+    __generate_images__(dst_folder, imgs)
     __generate_video__(dst_folder, imgs)
 
 
@@ -118,24 +113,10 @@ if __name__ == '__main__':
 
     dst_folder = os.path.join(args.source_folder, '..', 'imvid')
     dst_folder = os.path.abspath(dst_folder)
-
-    # clear out dst_folder if already exists
-    if not os.path.exists(dst_folder):
-        os.mkdir(dst_folder)
-    else:
-        filelist = os.listdir(dst_folder)
-        for file in filelist:
-            filepath = os.path.join(dst_folder, file)
-            name, ext = os.path.splitext(filepath)
-            if args.images and ext == '.jpg':
-                os.remove(filepath)
-            if args.video and ext == '.avi':
-                os.remove(filepath)
-
+    __prep_dest_folder__(dst_folder)
     imgs = __read_pickle_files__(args.source_folder)
 
     if args.images:
-        __generate_images__(dst_folder, imgs)
-
+        __generate_images__(dst_folder, images)
     if args.video:
         __generate_video__(dst_folder, imgs)

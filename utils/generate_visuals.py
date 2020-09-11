@@ -27,8 +27,6 @@ def __read_pickle_files__(source_folder_path):
                 data = pickle.load(f)
                 imgs.append(data)
 
-    print('read all pickle files')
-
     return imgs
 
 
@@ -117,6 +115,6 @@ if __name__ == '__main__':
     imgs = __read_pickle_files__(args.source_folder)
 
     if args.images:
-        __generate_images__(dst_folder, images)
+        __generate_images__(dst_folder, imgs)
     if args.video:
         __generate_video__(dst_folder, imgs)

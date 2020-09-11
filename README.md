@@ -2,7 +2,7 @@
 
 ## Quick Start
 
-Please install the provided conda environment with the following command. If you are on a Linux machine, switch the environment file to linux_env.yml.
+Please install the provided conda environment with the following command. If you are on a Linux machine, switch the environment file to `linux_env.yml`.
 
 ```
 $ conda env create -f win_env.yml

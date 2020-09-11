@@ -24,32 +24,10 @@ def __convert_paths__(impath):
     return os.path.join(new_parent_direc, image)
 
 
-def parse_turns(workspace_path, resize, crop):
-    # Get the drive and image data
-    drivedata_path = os.path.join(workspace_path, "*.csv")
-    drivedata = natsorted(glob.glob(drivedata_path))
-
-    # Get the parsed brake data
-    brakedata_path = os.path.join(
-        workspace_path, "crop", "brake_detect_results.pkl")
-    brakedata_file = open(brakedata_path, 'rb')
-    brakedata_contents = pickle.load(brakedata_file)
-    brakedata_array = list(brakedata_contents.values())
-
-    # Determine whether to use the uncropped images or the cropped ones
-    im_split = 0
-    imagedata = list()
-    if resize:
-        imagedata.extend(map(__convert_paths__, brakedata_contents.keys()))
-        im_split = len(imagedata)
-    if crop:
-        imagedata.extend(brakedata_contents.keys())
-
+def __parse_turns__(drivedata, imagedata, workspace_path, brakedata_array, output_dir):
     # Check if the number of images matches the number of drivedata CSVs
     len_drive = len(drivedata)
     len_image = len(imagedata)
-    if resize and crop:
-        len_image //= 2
 
     if len_image > len_drive:
         imagedata = imagedata[:len_drive]
@@ -58,32 +36,20 @@ def parse_turns(workspace_path, resize, crop):
         drivedata = drivedata[:len_image]
         print('more drive data than image data')
     else:
-        print('number of drive data and image data matches')
+        print('amount of drive data and image data matches')
 
-    # Create results directories if not exist, otherwise clear it
-    result_resized_dir = os.path.join(workspace_path, 'results_resized')
-    result_cropped_dir = os.path.join(workspace_path, 'results_cropped')
+    # Create result directory if not exist, otherwise clear it
+    result_dir = os.path.join(workspace_path, output_dir)
 
-    if resize:
-        if not os.path.exists(result_resized_dir):
-            os.mkdir(result_resized_dir)
-            print(f'created directory {result_resized_dir}')
-        else:
-            filelist = os.listdir(result_resized_dir)
-            for file in filelist:
-                filepath = os.path.join(result_resized_dir, file)
-                os.remove(filepath)
-            print(f'cleared directory {result_resized_dir}')
-    if crop:
-        if not os.path.exists(result_cropped_dir):
-            os.mkdir(result_cropped_dir)
-            print(f'created directory {result_cropped_dir}')
-        else:
-            filelist = os.listdir(result_cropped_dir)
-            for file in filelist:
-                filepath = os.path.join(result_cropped_dir, file)
-                os.remove(filepath)
-            print(f'cleared directory {result_cropped_dir}')
+    if not os.path.exists(result_dir):
+        os.mkdir(result_dir)
+        print(f'created directory {result_dir}')
+    else:
+        filelist = os.listdir(result_dir)
+        for file in filelist:
+            filepath = os.path.join(result_dir, file)
+            os.remove(filepath)
+        print(f'cleared directory {result_dir}')
 
     # Create pickle files
     print('generating pickled results')
@@ -106,29 +72,25 @@ def parse_turns(workspace_path, resize, crop):
 
             # Append images
             imf = cv2.imread(imagedata[j])
-            
-            # Resize images if the resize option is specified
-            if resize and i < im_split:
+
+            if output_dir == 'results_resized':
                 # 50% chance of putting a black rectangle in the corner (hiding the mini-map)
-                # Assumes a 1280x720 image      
+                # Assumes a 1280x720 image
                 if random.randint(0, 1) == 0:
-                    imf = cv2.rectangle(imf, (0, 560), (210, 720), (0, 0, 0), -1)
+                    imf = cv2.rectangle(
+                        imf, (0, 560), (210, 720), (0, 0, 0), -1)
                 # Resize the image
                 shape = imf.shape
                 imf = cv2.resize(imf, (shape[1]//4, shape[0]//4))
-            # We don't need to do anything if the crop option is specified
 
             images.append(imf)
 
             # Get brake data values
-            idx = j
-            if resize and crop and idx >= im_split:
-                idx -= len_drive
-            if (brakedata_array[idx] is True):
+            if (brakedata_array[j] is True):
                 braking += 1
 
             # Open drivedata CSV file
-            df = open(drivedata[idx], 'r')
+            df = open(drivedata[j], 'r')
             reader = csv.reader(df, delimiter=' ')
 
             # Get position data
@@ -186,19 +148,37 @@ def parse_turns(workspace_path, resize, crop):
         # save to pickle file
         output = copy.copy(images)
         output.append([A, D, W, S])
-        if resize and i < im_split:
-            outfile_path = os.path.join(result_resized_dir, f'{str(i).zfill(9)}_res.pkl')
-        if (crop and not resize) or (crop and resize and i >= im_split):
-            outfile_path = os.path.join(result_cropped_dir, f'{str(i).zfill(9)}_res.pkl')
+        outfile_path = os.path.join(
+            result_dir, f'{str(i).zfill(9)}_res.pkl')
 
         out = open(outfile_path, 'wb')
         pickle.dump(output, out)
 
     progress(num_items, num_items)
+    print(f'done writing results to {result_dir}')
+
+
+def parse_turns(workspace_path, resize, crop):
+    # Get the drive and image data
+    drivedata_path = os.path.join(workspace_path, "*.csv")
+    drivedata = natsorted(glob.glob(drivedata_path))
+
+    # Get the parsed brake data
+    brakedata_path = os.path.join(
+        workspace_path, "crop", "brake_detect_results.pkl")
+    brakedata_file = open(brakedata_path, 'rb')
+    brakedata_contents = pickle.load(brakedata_file)
+    brakedata_array = list(brakedata_contents.values())
+
+    # Determine the images to use
     if resize:
-        print(f'done writing results to {result_resized_dir}')
+        imagedata = list(map(__convert_paths__, brakedata_contents.keys()))
+        __parse_turns__(drivedata, imagedata, workspace_path,
+                        brakedata_array, 'results_resized')
     if crop:
-        print(f'done writing results to {result_cropped_dir}')
+        imagedata = list(brakedata_contents.keys())
+        __parse_turns__(drivedata, imagedata, workspace_path,
+                        brakedata_array, 'results_cropped')
 
 
 if __name__ == '__main__':
@@ -209,10 +189,10 @@ if __name__ == '__main__':
     parser.add_argument('workspace_path', action='store',
                         help='should be GTAV_program/drivedata')
     parser.add_argument('-r', '--resize', action='store_true', default=False,
-                    help='if specified, the result pickles will contain 1280x720 images \
+                        help='if specified, the result pickles will contain 1280x720 images \
                     scaled down to 320x180')
     parser.add_argument('-c', '--crop', action='store_true', default=False,
-                    help='if specified, the result pickles will contain 400x400 images \
+                        help='if specified, the result pickles will contain 400x400 images \
                     cropped from the original 1280x720 images')
     args = parser.parse_args()
 

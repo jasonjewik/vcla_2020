@@ -2,6 +2,7 @@ import argparse
 import os
 import glob
 import shutil
+import random
 from subprocess import call
 from utils.read_raw_data import read_raw_data
 from utils.generate_visuals import generate_images, generate_images_and_video
@@ -21,7 +22,7 @@ print(f'Detected OS: {OS}')
 
 # Parse arguments
 parser = argparse.ArgumentParser(
-    description='Label training data'
+    description='Labels image sequences of the motorcycle driving in GTA V'
 )
 parser.add_argument('root_folder', action='store',
                     help='should be GTAV_program/drivedata')
@@ -30,23 +31,25 @@ parser.add_argument('checkpoint_file', action='store',
 parser.add_argument('-p', '--parent', action='store_true',
                     help='whether the root folder is a parent folder, see README \
                     for details')
-parser.add_argument('-v', '--video', action='store_true',
-                    help='whether to create video')
-parser.add_argument('-o', '--open', action='store_true',
-                    help='whether to open directory when done')
-parser.add_argument('-k', '--keep', action='store_true', default=False,
-                    help='if specified, the program will not clean up any \
-                    intermediate files')
-parser.add_argument('-s', '--system', action='store', metavar="OS", default=OS,
-                    help='what OS you are on (this program should be able to \
-                    determine, but just in case); please specify "windows" \
-                    or "linux"')
 parser.add_argument('-r', '--resize', action='store_true', default=False,
                     help='if specified, the result pickles will contain 1280x720 images \
                     scaled down to 320x180')
 parser.add_argument('-c', '--crop', action='store_true', default=False,
                     help='if specified, the result pickles will contain 400x400 images \
                     cropped from the original 1280x720 images')
+parser.add_argument('-o', '--open', action='store_true',
+                    help='whether to open directory when done')
+parser.add_argument('-s', '--system', action='store', metavar="OS", default=OS,
+                    help='what OS you are on (this program should be able to \
+                    determine, but just in case); please specify "windows" \
+                    or "linux"')
+parser.add_argument('-v', '--video', action='store_true',
+                    help='whether to create video')
+parser.add_argument('-k', '--keep', action='store_true', default=False,
+                    help='if specified, the program will not clean up any \
+                    intermediate files')
+parser.add_argument('-n', '--num_samples_per_npz', action='store', default=500,
+                    help='number of samples put into each npz archive in the output')
 args = parser.parse_args()
 
 # Check folder input
@@ -82,7 +85,8 @@ if args.parent:
             print('Stepping through the child directories one at a time...')
             for i, d in enumerate(directories):
                 while True:
-                    user_input = input(f'Do you want to use "{os.path.split(d)[-1]}"? ([Y]/n) ') or True
+                    user_input = input(
+                        f'Do you want to use "{os.path.split(d)[-1]}"? ([Y]/n) ') or True
                     if user_input is True or user_input == 'Y':
                         break
                     elif user_input == 'n':
@@ -141,7 +145,7 @@ for dirnum, direc in enumerate(directories):
 
     # Parse turns
     print(f'=> STEP {curr_step}/{num_steps}')
-    parse_turns(direc, args.resize, args.crop)
+    parse_turns(direc, args.resize, args.crop, args.num_samples_per_npz)
     curr_step += 1
 
     print('all data has been labeled')

@@ -8,7 +8,6 @@ from natsort import natsorted
 import argparse
 import vg
 import pickle
-import copy
 import random
 
 if __name__ == '__main__':  # assumes the program is run from utils directory
@@ -24,7 +23,7 @@ def __convert_paths__(impath):
     return os.path.join(new_parent_direc, image)
 
 
-def __parse_turns__(drivedata, imagedata, workspace_path, brakedata_array, output_dir):
+def __parse_turns__(drivedata, imagedata, workspace_path, brakedata_array, output_dir, num_samples_per_npz):
     # Check if the number of images matches the number of drivedata CSVs
     len_drive = len(drivedata)
     len_image = len(imagedata)
@@ -52,15 +51,21 @@ def __parse_turns__(drivedata, imagedata, workspace_path, brakedata_array, outpu
         print(f'cleared directory {result_dir}')
 
     # Create pickle files
-    print('generating pickled results')
+    print('generating results')
 
     num_items = len(imagedata)
+    output = []
+    count = 0
+
+    # Get the image size
+    first_img = cv2.imread(imagedata[0])
+    image_shape = np.asarray(first_img.shape)
 
     for i in range(num_items):
         progress(i, num_items)
 
-        positions = np.empty([5, 3])
-        headings = np.empty([5, 3])
+        positions = np.empty((5, 3))
+        headings = np.empty((5, 3))
         images = []
         braking = 0
 
@@ -72,17 +77,11 @@ def __parse_turns__(drivedata, imagedata, workspace_path, brakedata_array, outpu
 
             # Append images
             imf = cv2.imread(imagedata[j])
-
             if output_dir == 'results_resized':
-                # 50% chance of putting a black rectangle in the corner (hiding the mini-map)
-                # Assumes a 1280x720 image
-                if random.randint(0, 1) == 0:
-                    imf = cv2.rectangle(
-                        imf, (0, 560), (210, 720), (0, 0, 0), -1)
-                # Resize the image
-                shape = imf.shape
-                imf = cv2.resize(imf, (shape[1]//4, shape[0]//4))
-
+                imf = cv2.resize(
+                    imf, (image_shape[1] // 4, image_shape[0] // 4))
+            elif output_dir == 'results_cropped':
+                imf = cv2.resize(imf, (image_shape[1], image_shape[0]))
             images.append(imf)
 
             # Get brake data values
@@ -145,20 +144,20 @@ def __parse_turns__(drivedata, imagedata, workspace_path, brakedata_array, outpu
         elif (avg_head_change >= 0.03):
             A = 1
 
-        # save to pickle file
-        output = copy.copy(images)
-        output.append([A, D, W, S])
-        outfile_path = os.path.join(
-            result_dir, f'{str(i).zfill(9)}_res.pkl')
-
-        out = open(outfile_path, 'wb')
-        pickle.dump(output, out)
+        # save to npz file
+        images.append([A, D, W, S])
+        output.append(images)
+        if len(output) % num_samples_per_npz == 0:
+            outpath = os.path.join(result_dir, f'data{count}.npz')
+            np.savez_compressed(outpath, np.asarray(output, dtype=object))
+            count += 1
+            output = []
 
     progress(num_items, num_items)
     print(f'done writing results to {result_dir}')
 
 
-def parse_turns(workspace_path, resize, crop):
+def parse_turns(workspace_path, resize, crop, num_samples_per_npz):
     # Get the drive and image data
     drivedata_path = os.path.join(workspace_path, "*.csv")
     drivedata = natsorted(glob.glob(drivedata_path))
@@ -174,11 +173,11 @@ def parse_turns(workspace_path, resize, crop):
     if resize:
         imagedata = list(map(__convert_paths__, brakedata_contents.keys()))
         __parse_turns__(drivedata, imagedata, workspace_path,
-                        brakedata_array, 'results_resized')
+                        brakedata_array, 'results_resized', num_samples_per_npz)
     if crop:
         imagedata = list(brakedata_contents.keys())
         __parse_turns__(drivedata, imagedata, workspace_path,
-                        brakedata_array, 'results_cropped')
+                        brakedata_array, 'results_cropped', num_samples_per_npz)
 
 
 if __name__ == '__main__':
@@ -193,7 +192,9 @@ if __name__ == '__main__':
                     scaled down to 320x180')
     parser.add_argument('-c', '--crop', action='store_true', default=False,
                         help='if specified, the result pickles will contain 400x400 images \
-                    cropped from the original 1280x720 images')
+                        cropped from the original 1280x720 images')
+    parser.add_argument('-n', '--num_samples_per_npz', action='store', default=500, type=int,
+                        help='number of samples put into each npz archive in the output')
     args = parser.parse_args()
 
     if not os.path.isdir(args.workspace_path):
@@ -205,4 +206,5 @@ if __name__ == '__main__':
         print('please specify either --resize, --crop, or both')
         exit(1)
 
-    parse_turns(args.workspace_path, args.resize, args.crop)
+    parse_turns(args.workspace_path, args.resize,
+                args.crop, args.num_samples_per_npz)
